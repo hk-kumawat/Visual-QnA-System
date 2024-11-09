@@ -1,35 +1,26 @@
 import streamlit as st
 from PIL import Image
-import requests
 from io import BytesIO
-import torch
-from transformers import ViltProcessor, ViltForQuestionAnswering
-from torchvision import models, transforms
-import matplotlib.pyplot as plt
-import numpy as np
+from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration
 
 # Set page layout to wide
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Visual Q&A", layout="wide")
 
-# Load the model for VQA (Visual Question Answering)
+# Load VQA model
 processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 
-# Load pre-trained Faster R-CNN model for object detection
-object_detection_model = models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-object_detection_model.eval()
+# Load image captioning model (BLIP)
+blip_processor = BlipProcessor.from_pretrained("hk-kumawat/blip-image-captioning-base")
+blip_model = BlipForConditionalGeneration.from_pretrained("hk-kumawat/blip-image-captioning-base")
 
-# Preprocessing for object detection
-transform = transforms.Compose([
-    transforms.ToTensor(),
-])
-
+# Function to get the answer to a question
 def get_answer(image, text):
     try:
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
 
-        # Prepare inputs
+        # Prepare inputs for VQA
         encoding = processor(img, text, return_tensors="pt")
 
         # Forward pass
@@ -43,42 +34,68 @@ def get_answer(image, text):
     except Exception as e:
         return str(e)
 
-# Image analysis function using Faster R-CNN
-def analyze_image(image):
-    # Convert image to tensor and pass through the object detection model
-    img_tensor = transform(image).unsqueeze(0)
-    
-    with torch.no_grad():
-        prediction = object_detection_model(img_tensor)
+# Function to generate image caption
+def generate_caption(image):
+    try:
+        # Prepare image for captioning
+        img = Image.open(BytesIO(image)).convert("RGB")
+        
+        # Generate caption
+        inputs = blip_processor(images=img, return_tensors="pt")
+        out = blip_model.generate(**inputs)
+        caption = blip_processor.decode(out[0], skip_special_tokens=True)
 
-    # Get the boxes, labels, and scores
-    boxes = prediction[0]['boxes'].numpy()
-    labels = prediction[0]['labels'].numpy()
-    scores = prediction[0]['scores'].numpy()
+        return caption
 
-    return boxes, labels, scores
-
-def plot_image_with_boxes(image, boxes, labels, scores):
-    # Convert image to numpy array for plotting
-    image = np.array(image)
-
-    # Create a plot to visualize the boxes and labels
-    plt.figure(figsize=(10, 10))
-    plt.imshow(image)
-    
-    for box, label, score in zip(boxes, labels, scores):
-        if score > 0.5:  # Filter out low confidence detections
-            xmin, ymin, xmax, ymax = box
-            plt.gca().add_patch(plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin, 
-                                               linewidth=2, edgecolor="r", facecolor="none"))
-            plt.text(xmin, ymin, f"Label: {label}, Score: {score:.2f}", 
-                     fontsize=12, bbox=dict(facecolor="yellow", alpha=0.5))
-
-    st.pyplot(plt)
+    except Exception as e:
+        return str(e)
 
 # Set up the Streamlit app
-st.title("Visual Question Answering & Image Analysis")
-st.write("Upload an image, ask a question, and get answers along with image analysis.")
+st.title("🖼️ Ask the Picture: Your Image, Your Questions 💬")
+st.write("Upload an image and enter a question to get an answer!")
+
+# Add custom CSS for styling
+st.markdown(
+    """
+    <style>
+    .title {
+        text-align: center;
+        font-size: 40px;
+        color: #4CAF50;
+        font-weight: bold;
+        margin-bottom: 50px;
+    }
+    .centered {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 20px;
+        color: #333;
+        font-style: italic;
+    }
+    .card {
+        background-color: #f0f8ff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    .question-input {
+        margin-bottom: 20px;
+    }
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 16px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Create columns for image upload and input fields
 col1, col2 = st.columns(2)
@@ -86,29 +103,34 @@ col1, col2 = st.columns(2)
 # Image upload
 with col1:
     uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
-    if uploaded_file:
+
+    if uploaded_file is not None:
+        # Display the uploaded image
         st.image(uploaded_file, use_container_width=True)
+        
+        # Generate and display image caption centered below the image
+        image_bytes = uploaded_file.getvalue()
+        caption = generate_caption(image_bytes)
+        st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
 # Question input
 with col2:
-    question = st.text_input("Question")
+    question = st.text_input("Ask a Question", key="question", placeholder="Type your question here...")
 
-    # Process the image and question when both are provided
     if uploaded_file and question:
-        image = Image.open(uploaded_file)
-        image_byte_array = BytesIO()
-        image.save(image_byte_array, format='JPEG')
-        image_bytes = image_byte_array.getvalue()
+        if st.button("Ask Question"):
+            image_bytes = uploaded_file.getvalue()
 
-        # Get the answer
-        answer = get_answer(image_bytes, question)
+            # Get the answer
+            answer = get_answer(image_bytes, question)
 
-        # Display the answer
-        st.success("Answer: " + answer)
-
-# Image analysis (Object detection)
-if uploaded_file:
-    image = Image.open(uploaded_file)
-    boxes, labels, scores = analyze_image(image)
-    st.subheader("Image Analysis: Detected Objects")
-    plot_image_with_boxes(image, boxes, labels, scores)
+            # Display the answer in a stylish box
+            st.markdown(
+                f"""
+                <div class="card">
+                    <h4 style="text-align: center;">Answer:</h4>
+                    <p style="text-align: center; font-size: 18px; color: #333;">{answer}</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
