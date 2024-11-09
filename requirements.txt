@@ -6,3 +6,5 @@ fastapi
 uvicorn
 streamlit
 python-multipart
+torchvision
+matplotlib
