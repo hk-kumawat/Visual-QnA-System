@@ -4,7 +4,7 @@ from io import BytesIO
 from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration
 
 # Set page layout to wide
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Visual Q&A", layout="wide")
 
 # Load VQA model
 processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
@@ -51,8 +51,51 @@ def generate_caption(image):
         return str(e)
 
 # Set up the Streamlit app
-st.title("Visual Question Answering with Follow-up Questions")
-st.write("Upload an image and enter a question to get an answer.")
+st.title("🌟 Visual Question Answering 🌟")
+st.write("Upload an image and enter a question to get an answer!")
+
+# Add custom CSS for styling
+st.markdown(
+    """
+    <style>
+    .title {
+        text-align: center;
+        font-size: 40px;
+        color: #4CAF50;
+        font-weight: bold;
+        margin-bottom: 50px;
+    }
+    .centered {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 20px;
+        color: #333;
+        font-style: italic;
+    }
+    .card {
+        background-color: #f0f8ff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    .question-input {
+        margin-bottom: 20px;
+    }
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 16px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Create columns for image upload and input fields
 col1, col2 = st.columns(2)
@@ -64,21 +107,16 @@ with col1:
     if uploaded_file is not None:
         # Display the uploaded image
         st.image(uploaded_file, use_container_width=True)
-
-        # Generate and display image caption
+        
+        # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
         caption = generate_caption(image_bytes)
-        st.write("Image Caption: " + caption)
+        st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
 # Question input
 with col2:
-    question = st.text_input("Question")
+    question = st.text_input("Ask a Question", key="question", placeholder="Type your question here...")
 
-    # Store previous answer to allow follow-up questions
-    if 'previous_answer' not in st.session_state:
-        st.session_state.previous_answer = ""
-
-    # Process the image and question when both are provided
     if uploaded_file and question:
         if st.button("Ask Question"):
             image_bytes = uploaded_file.getvalue()
@@ -86,19 +124,13 @@ with col2:
             # Get the answer
             answer = get_answer(image_bytes, question)
 
-            # Display the answer
-            st.success("Answer: " + answer)
-
-            # Store the current answer for follow-up questions
-            st.session_state.previous_answer = answer
-
-    # Allow follow-up question based on previous answer
-    if st.session_state.previous_answer:
-        follow_up_question = st.text_input("Follow-up Question (optional)", key="follow_up")
-
-        if follow_up_question:
-            if st.button("Ask Follow-up Question"):
-                # Get the follow-up answer
-                follow_up_answer = get_answer(image_bytes, follow_up_question)
-                st.success("Follow-up Answer: " + follow_up_answer)
-                st.session_state.previous_answer = follow_up_answer
+            # Display the answer in a stylish box
+            st.markdown(
+                f"""
+                <div class="card">
+                    <h4 style="text-align: center;">Answer:</h4>
+                    <p style="text-align: center; font-size: 18px; color: #333;">{answer}</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
