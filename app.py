@@ -93,12 +93,7 @@ st.markdown(
         margin-top: 20px;
         line-height: 1.6;
     }
-    .stButton>button {
-        font-size: 16px;
-    }
-    .stButton>button:hover {
-        background-color: #45a049;
-    }
+    
     </style>
     """,
     unsafe_allow_html=True
