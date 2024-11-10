@@ -71,7 +71,7 @@ def generate_questions_from_caption(caption):
     return questions
 
 # Set up the Streamlit app
-st.title("🌟 Visual Question Answering 🌟")
+st.title("🔍 Visual Question Answering 🖼️")
 st.write("Upload an image and choose or write a question to get an answer!")
 
 # Add custom CSS for styling
