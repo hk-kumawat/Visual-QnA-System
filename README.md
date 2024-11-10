@@ -29,7 +29,7 @@ _Below is a preview of the Visual QnA System in action. Upload an image and ask 
 5. [Technologies Used](#technologies-used)
 6. [Results](#results)
 7. [Conclusion](#conclusion)
-8. 8. [Future Enhancements](#future-enhancements)
+8. [Future Enhancements](#future-enhancements)
 9. [License](#license)
 10. [Contact](#contact)
 
