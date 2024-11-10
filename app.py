@@ -50,6 +50,38 @@ def generate_caption(image):
     except Exception as e:
         return str(e)
 
+# Function to generate suggested questions based on the caption
+def generate_suggested_questions(caption):
+    questions = []
+    # Generate questions based on some basic patterns from the caption
+    if "person" in caption.lower():
+        questions.extend([
+            "What is the person doing in the image?",
+            "What is the person holding?",
+            "What is the person wearing?",
+            "What is the person's expression?"
+        ])
+    if "animal" in caption.lower() or "cat" in caption.lower() or "dog" in caption.lower():
+        questions.extend([
+            "What animal is in the image?",
+            "What is the animal doing?",
+            "What is the color of the animal?"
+        ])
+    if "car" in caption.lower():
+        questions.extend([
+            "What is the car model?",
+            "What color is the car?",
+            "Is there anyone inside the car?"
+        ])
+    if "tree" in caption.lower():
+        questions.extend([
+            "What type of tree is in the image?",
+            "How many trees are in the image?",
+            "Is the tree blooming?"
+        ])
+    # Add more categories based on the caption description
+    return questions
+
 # Set up the Streamlit app
 st.title("🌟 Visual Question Answering 🌟")
 st.write("Upload an image and choose or write a question to get an answer!")
@@ -99,16 +131,11 @@ with col1:
         caption = generate_caption(image_bytes)
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
+        # Generate suggested questions based on the caption
+        suggested_questions = generate_suggested_questions(caption)
+
 # Suggested Question Input or Custom Question Input
 with col2:
-    # List of suggested questions
-    suggested_questions = [
-        "What is in the image?",
-        "What is the object in the image?",
-        "Describe the image.",
-        "What is the person doing in the image?"
-    ]
-    
     # Dropdown to select a question or write your own
     selected_question = st.selectbox("Choose a suggested question or write your own", 
                                      [""] + suggested_questions)
