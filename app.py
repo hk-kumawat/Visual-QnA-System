@@ -92,10 +92,3 @@ if uploaded_file:
         
         # Display the answer
         st.success("Answer: " + answer)
-
-# Footer
-st.markdown("---")
-st.markdown(
-    "<p style='text-align: center;'>Where <strong>Vision</strong> Meets <strong>Intelligence</strong> - A Creation by <strong>Harshal Kumawat</strong> 👁️🤖</p>",
-    unsafe_allow_html=True
-)
