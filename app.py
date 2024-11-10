@@ -102,12 +102,20 @@ with col1:
 
 # Suggested Question Input or Custom Question Input
 with col2:
+    # Store the selected question in session state to persist its value
+    if 'question' not in st.session_state:
+        st.session_state['question'] = ""
+
     # Dropdown to select a question or write your own
     selected_question = st.selectbox("Choose a suggested question or write your own", 
-                                     [""] + suggested_questions)
+                                     [""] + suggested_questions, index=0)
     
     # Allow user to type their own question if they choose to
-    question = selected_question if selected_question != "" else st.text_input("Your question")
+    if selected_question == "":
+        question = st.text_input("Your question", value=st.session_state['question'])
+    else:
+        question = selected_question
+        st.session_state['question'] = question  # Save the selected question to session state
 
     # Button for prediction (default Streamlit button color)
     if uploaded_file and question:
