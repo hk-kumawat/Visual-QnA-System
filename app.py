@@ -11,8 +11,8 @@ processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 
 # Load image captioning model (BLIP)
-blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+blip_processor = BlipProcessor.from_pretrained("hk-kumawat/blip-image-captioning-base")
+blip_model = BlipForConditionalGeneration.from_pretrained("hk-kumawat/blip-image-captioning-base")
 
 # Function to get the answer to a question
 def get_answer(image, text):
@@ -155,3 +155,11 @@ with col2:
 
             # After showing the answer, reset question input field for new input
             st.session_state['question'] = ""  # Clear the 'Your question' box for next input
+
+
+# Footer
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center;'>Where <strong>Vision</strong> Meets <strong>Intelligence</strong> - A Creation by <strong>Harshal Kumawat</strong> 👁️🤖</p>",
+    unsafe_allow_html=True
+)
