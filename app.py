@@ -1,26 +1,47 @@
 import streamlit as st
 from PIL import Image
+import requests
 from io import BytesIO
-from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration
+from transformers import ViltProcessor, ViltForQuestionAnswering
+from transformers import pipeline
 
 # Set page layout to wide
-st.set_page_config(page_title="Visual Q&A", layout="wide")
+st.set_page_config(layout="wide")
 
-# Load VQA model
+# Load the Vilt model and processor
 processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 
-# Load image captioning model (BLIP)
-blip_processor = BlipProcessor.from_pretrained("hk-kumawat/blip-image-captioning-base")
-blip_model = BlipForConditionalGeneration.from_pretrained("hk-kumawat/blip-image-captioning-base")
+# Load an object detection model
+object_detection = pipeline("object-detection")
 
-# Function to get the answer to a question
+# Function to generate potential questions based on detected objects
+def generate_question_suggestions(image):
+    detected_objects = object_detection(image)
+    objects = list(set(obj['label'] for obj in detected_objects))
+    
+    question_templates = [
+        "What is the {} in the image?",
+        "How many {} are there?",
+        "What color is the {}?",
+        "Is there a {} in the picture?",
+        "Where is the {} located?"
+    ]
+    
+    suggestions = []
+    for obj in objects:
+        for template in question_templates:
+            suggestions.append(template.format(obj))
+    
+    return suggestions
+
+# Function to get the answer for a given question
 def get_answer(image, text):
     try:
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
 
-        # Prepare inputs for VQA
+        # Prepare inputs
         encoding = processor(img, text, return_tensors="pt")
 
         # Forward pass
@@ -34,112 +55,47 @@ def get_answer(image, text):
     except Exception as e:
         return str(e)
 
-# Function to generate image caption
-def generate_caption(image):
-    try:
-        # Prepare image for captioning
-        img = Image.open(BytesIO(image)).convert("RGB")
-        
-        # Generate caption
-        inputs = blip_processor(images=img, return_tensors="pt")
-        out = blip_model.generate(**inputs)
-        caption = blip_processor.decode(out[0], skip_special_tokens=True)
-
-        return caption
-
-    except Exception as e:
-        return str(e)
-
-# Set up the Streamlit app
-st.title("🖼️ Ask the Picture: Your Image, Your Questions 💬")
-st.write("Upload an image and enter a question to get an answer!")
-
-# Add custom CSS for styling
-st.markdown(
-    """
-    <style>
-    .title {
-        text-align: center;
-        font-size: 40px;
-        color: #4CAF50;
-        font-weight: bold;
-        margin-bottom: 50px;
-    }
-    .centered {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 20px;
-        color: #333;
-        font-style: italic;
-    }
-    .card {
-        background-color: #f0f8ff;
-        border-radius: 10px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-    .question-input {
-        margin-bottom: 20px;
-    }
-    .stButton>button {
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 10px;
-        padding: 12px;
-        font-size: 16px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    .stButton>button:hover {
-        background-color: #45a049;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Create columns for image upload and input fields
-col1, col2 = st.columns(2)
+# Streamlit app layout
+st.title("Visual Question Answering")
+st.write("Upload an image, select or enter a question to get an answer.")
 
 # Image upload
-with col1:
-    uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
 
-    if uploaded_file is not None:
-        # Display the uploaded image
-        st.image(uploaded_file, use_container_width=True)
+# Process the uploaded image
+if uploaded_file:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+
+    # Generate question suggestions
+    with st.spinner("Analyzing image content for question suggestions..."):
+        suggestions = generate_question_suggestions(image)
+    
+    # Display a dropdown with question suggestions
+    selected_question = st.selectbox("Suggested Questions", options=[""] + suggestions)
+    
+    # User question input
+    user_question = st.text_input("Or enter your own question")
+    
+    # Determine the final question to use
+    question = user_question if user_question else selected_question
+
+    # Process the image and question when both are provided
+    if question and st.button("Ask Question"):
+        # Convert image to byte array for model processing
+        image_byte_array = BytesIO()
+        image.save(image_byte_array, format='JPEG')
+        image_bytes = image_byte_array.getvalue()
         
-        # Generate and display image caption centered below the image
-        image_bytes = uploaded_file.getvalue()
-        caption = generate_caption(image_bytes)
-        st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
+        # Get the answer
+        answer = get_answer(image_bytes, question)
+        
+        # Display the answer
+        st.success("Answer: " + answer)
 
-# Question input
-with col2:
-    question = st.text_input("Ask a Question", key="question", placeholder="Type your question here...")
-
-    if uploaded_file and question:
-        if st.button("Ask Question"):
-            image_bytes = uploaded_file.getvalue()
-
-            # Get the answer
-            answer = get_answer(image_bytes, question)
-
-            # Display the answer in a stylish box
-            st.markdown(
-                f"""
-                <div class="card">
-                    <h4 style="text-align: center;">Answer:</h4>
-                    <p style="text-align: center; font-size: 18px; color: #333;">{answer}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-# Footer section
-    st.markdown("---")  # Horizontal divider
-    st.markdown(
-        "<div style='text-align: center; color: #7f8c8d; font-size: 16px;'>"
-        "🍿 | Brought to Life By - Harshal Kumawat | 🎬"
-        "</div>",
-        unsafe_allow_html=True
-    )
+# Footer
+st.markdown("---")
+st.markdown(
+    "<p style='text-align: center;'>Where <strong>Vision</strong> Meets <strong>Intelligence</strong> - A Creation by <strong>Harshal Kumawat</strong> 👁️🤖</p>",
+    unsafe_allow_html=True
+)
