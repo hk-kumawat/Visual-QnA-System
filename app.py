@@ -4,7 +4,7 @@ from io import BytesIO
 from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration
 
 # Set page layout to wide
-st.set_page_config(page_title="Visual Q&A", layout="wide")
+st.set_page_config(page_title="Visual Question Answering", layout="wide")
 
 # Load VQA model
 processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
@@ -50,36 +50,29 @@ def generate_caption(image):
     except Exception as e:
         return str(e)
 
-# Function to generate suggested questions based on the caption
-def generate_suggested_questions(caption):
+# Function to generate questions based on the caption
+def generate_questions_from_caption(caption):
     questions = []
-    # Generate questions based on some basic patterns from the caption
-    if "person" in caption.lower():
-        questions.extend([
-            "What is the person doing in the image?",
-            "What is the person holding?",
-            "What is the person wearing?",
-            "What is the person's expression?"
-        ])
-    if "animal" in caption.lower() or "cat" in caption.lower() or "dog" in caption.lower():
-        questions.extend([
-            "What animal is in the image?",
-            "What is the animal doing?",
-            "What is the color of the animal?"
-        ])
-    if "car" in caption.lower():
-        questions.extend([
-            "What is the car model?",
-            "What color is the car?",
-            "Is there anyone inside the car?"
-        ])
-    if "tree" in caption.lower():
-        questions.extend([
-            "What type of tree is in the image?",
-            "How many trees are in the image?",
-            "Is the tree blooming?"
-        ])
-    # Add more categories based on the caption description
+    caption_lower = caption.lower()
+
+    # Example logic to generate questions based on the caption's content
+    if "person" in caption_lower:
+        questions.append("What is the person doing in the image?")
+        if "near" in caption_lower:
+            questions.append("Where is the person standing?")
+    if "dog" in caption_lower or "cat" in caption_lower:
+        questions.append("What animal is in the image?")
+        questions.append("What is the animal doing?")
+    if "tree" in caption_lower:
+        questions.append("What type of tree is in the image?")
+        questions.append("How many trees are in the image?")
+    if "car" in caption_lower:
+        questions.append("What color is the car?")
+        questions.append("Is there anyone inside the car?")
+    
+    # Generate generic question from description
+    questions.append(f"What can you tell me about the image?")
+
     return questions
 
 # Set up the Streamlit app
@@ -131,8 +124,10 @@ with col1:
         caption = generate_caption(image_bytes)
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
-        # Generate suggested questions based on the caption
-        suggested_questions = generate_suggested_questions(caption)
+        # Generate questions based on the caption
+        suggested_questions = generate_questions_from_caption(caption)
+    else:
+        suggested_questions = []  # Handle case where no image is uploaded
 
 # Suggested Question Input or Custom Question Input
 with col2:
