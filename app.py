@@ -74,35 +74,6 @@ def generate_questions_from_caption(caption):
 st.title("🔍 Visual Question Answering 🖼️ ")
 st.write("Upload an image and choose or write a question to get an answer!")
 
-# Add custom CSS for styling
-st.markdown(
-    """
-    <style>
-    .title {
-        text-align: center;
-        font-size: 40px;
-        color: #4CAF50;
-        font-weight: bold;
-        margin-bottom: 50px;
-    }
-    .centered {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 20px;
-        color: #333;
-        font-style: italic;
-    }
-    .stButton>button {
-        font-size: 16px;
-    }
-    .stButton>button:hover {
-        background-color: #45a049;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Create columns for image upload and input fields
 col1, col2 = st.columns(2)
 
