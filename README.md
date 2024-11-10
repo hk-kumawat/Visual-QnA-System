@@ -59,7 +59,7 @@ _Below is a preview of the Visual QnA System in action. Upload an image and ask 
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/hk-kumawat/Visual-QnA.git
+   https://github.com/hk-kumawat/Visual-QnA-System.git
    ```
 
 2. **Install dependencies**:
