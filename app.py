@@ -79,35 +79,6 @@ def generate_questions_from_caption(caption):
 st.title("🌟 Visual Question Answering 🌟")
 st.write("Upload an image and choose or write a question to get an answer!")
 
-# Add custom CSS for styling
-st.markdown(
-    """
-    <style>
-    .title {
-        text-align: center;
-        font-size: 40px;
-        color: #4CAF50;
-        font-weight: bold;
-        margin-bottom: 50px;
-    }
-    .centered {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 20px;
-        color: #333;
-        font-style: italic;
-    }
-    .stButton>button {
-        font-size: 16px;
-    }
-    .stButton>button:hover {
-        background-color: #f2eeb8;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Create columns for image upload and input fields
 col1, col2 = st.columns(2)
 
@@ -138,7 +109,7 @@ with col2:
     # Allow user to type their own question if they choose to
     question = selected_question if selected_question != "" else st.text_input("Your question")
 
-    # Button for prediction
+    # Button for prediction (default Streamlit button color)
     if uploaded_file and question:
         if st.button("Predict Answer"):
             image_bytes = uploaded_file.getvalue()
@@ -146,5 +117,5 @@ with col2:
             # Get the answer
             answer = get_answer(image_bytes, question)
 
-            # Display the answer using st.success() with no white background
+            # Display the answer using st.success()
             st.success(f"Answer: {answer}")
