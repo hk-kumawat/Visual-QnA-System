@@ -74,6 +74,36 @@ def generate_questions_from_caption(caption):
 st.title("🔍 Visual Question Answering 🖼️ ")
 st.write("Upload an image and choose or write a question to get an answer!")
 
+# Add custom CSS for styling
+st.markdown(
+    """
+    <style>
+    .title {
+        text-align: center;
+        font-size: 40px;
+        color: #4CAF50;
+        font-weight: bold;
+        margin-bottom: 50px;
+    }
+    .centered {
+        text-align: center;
+        font-size: 20px;
+        font-style: italic;
+        color: #333;
+        margin-top: 20px;
+        line-height: 1.6;
+    }
+    .stButton>button {
+        font-size: 16px;
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Create columns for image upload and input fields
 col1, col2 = st.columns(2)
 
@@ -88,6 +118,8 @@ with col1:
         # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
         caption = generate_caption(image_bytes)
+
+        # Display the caption with previous formatting and centered
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
         # Generate questions based on the caption
