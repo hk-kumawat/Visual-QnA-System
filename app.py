@@ -52,7 +52,7 @@ def generate_caption(image):
 
 # Set up the Streamlit app
 st.title("🌟 Visual Question Answering 🌟")
-st.write("Upload an image and enter a question to get an answer!")
+st.write("Upload an image and choose a suggested question to get an answer!")
 
 # Add custom CSS for styling
 st.markdown(
@@ -113,12 +113,21 @@ with col1:
         caption = generate_caption(image_bytes)
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
-# Question input
+# Suggested Question Input
 with col2:
-    question = st.text_input("Ask a Question", key="question", placeholder="Type your question here...")
+    # List of suggested questions (you can dynamically generate these based on the image if desired)
+    suggested_questions = [
+        "What is in the image?",
+        "What is the object in the image?",
+        "Describe the image.",
+        "What is the person doing in the image?"
+    ]
+    
+    question = st.selectbox("Choose a suggested question", suggested_questions)
 
+    # Button for prediction
     if uploaded_file and question:
-        if st.button("Ask Question"):
+        if st.button("Predict Answer"):
             image_bytes = uploaded_file.getvalue()
 
             # Get the answer
