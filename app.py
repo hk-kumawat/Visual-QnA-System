@@ -58,20 +58,15 @@ def generate_questions_from_caption(caption):
     # Example logic to generate questions based on the caption's content
     if "person" in caption_lower:
         questions.append("What is the person doing in the image?")
-        if "near" in caption_lower:
-            questions.append("Where is the person standing?")
     if "dog" in caption_lower or "cat" in caption_lower:
         questions.append("What animal is in the image?")
-        questions.append("What is the animal doing?")
     if "tree" in caption_lower:
         questions.append("What type of tree is in the image?")
-        questions.append("How many trees are in the image?")
     if "car" in caption_lower:
         questions.append("What color is the car?")
-        questions.append("Is there anyone inside the car?")
     
-    # Generate generic question from description
-    questions.append(f"What can you tell me about the image?")
+    # Add a generic question
+    questions.append("What can you tell me about the image?")
 
     return questions
 
@@ -112,12 +107,13 @@ with col2:
     
     # Allow user to type their own question if they choose to
     if selected_question == "":
+        # Hide 'Your question' input box if a suggestion is selected
         question = st.text_input("Your question", value=st.session_state['question'])
     else:
         question = selected_question
         st.session_state['question'] = question  # Save the selected question to session state
 
-    # Button for prediction (default Streamlit button color)
+    # Button for prediction (only show if custom question is selected)
     if uploaded_file and question:
         if st.button("Predict Answer"):
             image_bytes = uploaded_file.getvalue()
@@ -127,3 +123,6 @@ with col2:
 
             # Display the answer using st.success()
             st.success(f"Answer: {answer}")
+
+            # After showing the answer, reset question input field for new input
+            st.session_state['question'] = ""  # Clear the 'Your question' box for next input
