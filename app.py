@@ -72,15 +72,6 @@ st.markdown(
         color: #333;
         font-style: italic;
     }
-    .card {
-        background-color: #f0f8ff;
-        border-radius: 10px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-    .question-input {
-        margin-bottom: 20px;
-    }
     .stButton>button {
         background-color: #4CAF50;
         color: white;
@@ -133,13 +124,5 @@ with col2:
             # Get the answer
             answer = get_answer(image_bytes, question)
 
-            # Display the answer in a stylish box
-            st.markdown(
-                f"""
-                <div class="card">
-                    <h4 style="text-align: center;">Answer:</h4>
-                    <p style="text-align: center; font-size: 18px; color: #333;">{answer}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            # Display the answer using st.success() with no white background
+            st.success(f"Answer: {answer}")
