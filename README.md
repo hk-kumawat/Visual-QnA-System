@@ -1,6 +1,6 @@
 # 🔍 **Visual QnA System** 🖼️
 
-![Visual QnA System](https://github.com/user-attachments/assets/your-image-link)
+![Visual QnA System](https://github.com/user-attachments/assets/3e83cb9a-cc1a-4cd3-a0b4-a0a9affd7bbc)
 
 ## Overview
 
@@ -8,14 +8,14 @@ The **Visual QnA System** enables users to upload an image and ask specific ques
 
 ## Live Demo
 
-Try out the Visual QnA System! 👉🏻 [![Experience It! 🌟](https://img.shields.io/badge/Experience%20It!-blue)](https://your-deployed-app-link)
+Try out the Visual QnA System! 👉🏻 [![Experience It! 🌟](https://img.shields.io/badge/Experience%20It!-blue)](https://ask-visual.streamlit.app/)
 
 <br>
 
 _Below is a preview of the Visual QnA System in action. Upload an image and ask questions! 👇🏻_
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/your-demo-image" alt="demo">
+  <img src="https://github.com/user-attachments/assets/a3df4415-d9a3-41e2-b819-204d15b23abf" alt="demo">
 </p>
 
 <br>
