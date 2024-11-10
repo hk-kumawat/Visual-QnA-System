@@ -101,7 +101,7 @@ st.markdown(
         font-size: 16px;
     }
     .stButton>button:hover {
-        background-color: #45a049;
+        background-color: #fff372;
     }
     </style>
     """,
