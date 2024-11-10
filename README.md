@@ -123,7 +123,7 @@ With the ability to analyze and answer questions about images, it can enhance **
 
 <br>
 
-## Future Enhancements 🚀
+## Future Enhancements🚀
 
 While the **Visual QnA System** currently delivers concise, single-line responses, future improvements could enable more detailed, context-aware answers. Here are a few potential upgrades:
 
