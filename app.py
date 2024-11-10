@@ -99,7 +99,7 @@ with col1:
         caption = generate_caption(image_bytes)
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
-# Input field for selecting or writing a question
+# Suggested Question Input or Custom Question Input
 with col2:
     # List of suggested questions
     suggested_questions = [
@@ -108,13 +108,13 @@ with col2:
         "Describe the image.",
         "What is the person doing in the image?"
     ]
-
-    # Dropdown to select a question or allow custom question
-    question = st.selectbox("Choose a suggested question or write your own", 
-                            suggested_questions + ["(Write your own question)"])
-
-    if question == "(Write your own question)":
-        question = st.text_input("Your question")
+    
+    # Dropdown to select a question or write your own
+    selected_question = st.selectbox("Choose a suggested question or write your own", 
+                                     [""] + suggested_questions)
+    
+    # Allow user to type their own question if they choose to
+    question = selected_question if selected_question != "" else st.text_input("Your question")
 
     # Button for prediction
     if uploaded_file and question:
