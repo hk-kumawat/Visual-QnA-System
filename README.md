@@ -29,8 +29,9 @@ _Below is a preview of the Visual QnA System in action. Upload an image and ask 
 5. [Technologies Used](#technologies-used)
 6. [Results](#results)
 7. [Conclusion](#conclusion)
-8. [License](#license)
-9. [Contact](#contact)
+8. 8. [Future Enhancements](#future-enhancements)
+9. [License](#license)
+10. [Contact](#contact)
 
 <br>
 
@@ -122,6 +123,17 @@ With the ability to analyze and answer questions about images, it can enhance **
 
 <br>
 
+## Future Enhancements 🚀
+
+While the **Visual QnA System** currently delivers concise, single-line responses, future improvements could enable more detailed, context-aware answers. Here are a few potential upgrades:
+
+- **Extended Answer Generation**: Integrate advanced language models to generate detailed answers that provide in-depth information based on image content.
+- **Context Awareness**: Enable the system to consider multiple objects and interactions in an image, enhancing its capability to answer complex questions.
+- **Multilingual Support**: Add the ability to understand and answer questions in various languages, broadening accessibility.
+- **Enhanced Accuracy with Fine-Tuning**: Train on diverse datasets for specialized fields, such as medical imaging or geographical scenes, to improve precision and expand application areas.
+
+
+<br> 
 
 ## License📝
 
