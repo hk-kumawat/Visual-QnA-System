@@ -47,13 +47,12 @@ def generate_caption(image):
 st.title("🔍 Visual Question Answering 🖼️")
 st.write("Upload an image and ask a question to get an answer!")
 
-# Create a button or icon for help
+# Create a clickable icon (question mark) for help
 if 'show_help' not in st.session_state:
     st.session_state['show_help'] = False
 
-help_button = st.button("❓ Help", key="help_button")
-if help_button:
-    st.session_state['show_help'] = not st.session_state['show_help']
+# Display an icon, when clicked, will toggle the help section
+help_icon = st.markdown('<div style="font-size: 24px; cursor: pointer;" onclick="window.location.href=\'#help-section\'">❓</div>', unsafe_allow_html=True)
 
 # Conditionally display help section based on state
 if st.session_state['show_help']:
