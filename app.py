@@ -61,7 +61,7 @@ st.markdown(
     <p style="color: #ff6600; font-weight: bold;">⚠️ Please note:</p>
     <p style="color: #333;">This app works best with simple questions related to the image. Complex questions might not be processed well. For example:</p>
     <ul style="color: #333;">
-        <li><strong>Good Question:</strong> "What is in the image?"</li>
+        <li><strong>Good Question:</strong> "Is the <mark><object></mark> present in the image?"</li>
         <li><strong>Not Ideal Question:</strong> "Can you explain in detail what this object is and how it works?"</li>
     </ul>
     <p style="color: #333;">For best results, try to keep your questions clear and simple!</p>
