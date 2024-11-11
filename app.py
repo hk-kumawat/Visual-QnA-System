@@ -1,46 +1,62 @@
 import streamlit as st
 from PIL import Image
-from transformers import pipeline, AutoProcessor, AutoModelForVisualQuestionAnswering
-import torch
 from io import BytesIO
+from transformers import BlipProcessor, BlipForConditionalGeneration, pipeline
 
 # Set page layout to wide
 st.set_page_config(page_title="Visual Question Answering", layout="wide")
 
-# Load the image-to-text pipeline for captioning
-caption_pipeline = pipeline("image-to-text", model="Salesforce/blip2-opt-6.7b")
-
-# Load processor and model for Visual Question Answering (VQA)
-vqa_processor = AutoProcessor.from_pretrained("Salesforce/blip2-opt-6.7b")
-vqa_model = AutoModelForVisualQuestionAnswering.from_pretrained("Salesforce/blip2-opt-6.7b")
+# Load models with error handling
+try:
+    # Load BLIP pipeline for image captioning
+    caption_pipeline = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
+    
+    # Load BLIP processor and model for VQA
+    vqa_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+    vqa_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+except Exception as e:
+    st.error(f"Error loading models: {e}")
 
 # Function to generate image caption
-def generate_image_caption(image):
-    # Generate caption for the image
-    caption = caption_pipeline(image)[0]['generated_text']
-    return caption
+def generate_caption(image):
+    try:
+        # Process image and generate caption
+        img = Image.open(BytesIO(image)).convert("RGB")
+        caption = caption_pipeline(img)[0]['generated_text']
+        return caption
+    except Exception as e:
+        return f"Error generating caption: {e}"
 
-# Function to answer questions based on an image
+# Function to answer a question about the image
 def answer_question(image, question):
-    # Process the image and question for VQA
-    inputs = vqa_processor(images=image, text=question, return_tensors="pt").to(vqa_model.device)
-    
-    # Generate answer
-    with torch.no_grad():
-        outputs = vqa_model(**inputs)
-    
-    # Decode and return answer
-    answer = vqa_processor.decode(outputs.logits.argmax(dim=-1)[0])
-    return answer
+    try:
+        # Process image and question for VQA
+        img = Image.open(BytesIO(image)).convert("RGB")
+        inputs = vqa_processor(img, question, return_tensors="pt")
+        
+        # Generate answer from model
+        output = vqa_model.generate(**inputs)
+        answer = vqa_processor.decode(output[0], skip_special_tokens=True)
+        
+        return answer
+    except Exception as e:
+        return f"Error generating answer: {e}"
 
 # Set up the Streamlit app
-st.title("🔍 Visual Question Answering 🖼️ ")
-st.write("Upload an image and enter a question to get an answer!")
+st.title("🔍 Visual Question Answering 🖼️")
+st.write("Upload an image and ask a question to get a detailed answer based on the content of the image.")
 
 # Add custom CSS for styling
 st.markdown(
     """
     <style>
+    .title {
+        text-align: center;
+        font-size: 40px;
+        color: #4CAF50;
+        font-weight: bold;
+        margin-bottom: 50px;
+    }
     .centered {
         text-align: center;
         font-size: 20px;
@@ -67,23 +83,23 @@ with col1:
         
         # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
-        img = Image.open(BytesIO(image_bytes)).convert("RGB")
-        caption = generate_image_caption(img)
-
-        # Display the caption with previous formatting and centered
+        caption = generate_caption(image_bytes)
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
+    else:
+        caption = None  # Handle case where no image is uploaded
 
-# Question Input
+# Custom Question Input
 with col2:
+    # Allow user to type their question if an image is uploaded
     question = st.text_input("Ask a question about the image")
-
-    # Button for prediction
+    
+    # Button for prediction (only show if an image is uploaded and a question is asked)
     if uploaded_file and question:
-        if st.button("Predict Answer"):
+        if st.button("Get Answer"):
             # Get the answer
-            answer = answer_question(img, question)
-
-            # Display the answer using st.success()
+            answer = answer_question(image_bytes, question)
+            
+            # Display the answer
             st.success(f"Answer: {answer}")
 
 # Footer
