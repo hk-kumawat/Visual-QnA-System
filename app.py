@@ -24,9 +24,11 @@ def get_answer(image, question):
         # Prepare the input to the BLIP model with the caption and question
         input_text = f"Caption: {caption} Question: {question}"
 
-        # Generate the answer using BLIP model
+        # Generate the answer using BLIP model with max_new_tokens to control output length
         inputs = blip_processor(images=img, text=input_text, return_tensors="pt")
-        out = blip_model.generate(**inputs)
+
+        # Generate answer with a specific number of tokens
+        out = blip_model.generate(**inputs, max_new_tokens=50)  # Limit the generated answer length to 50 tokens
         answer = blip_processor.decode(out[0], skip_special_tokens=True)
         
         return answer
@@ -40,7 +42,7 @@ def generate_caption(image):
         img = Image.open(BytesIO(image)).convert("RGB")
         # Generate caption using BLIP
         inputs = blip_processor(images=img, return_tensors="pt")
-        out = blip_model.generate(**inputs)
+        out = blip_model.generate(**inputs, max_new_tokens=30)  # Limit caption length
         caption = blip_processor.decode(out[0], skip_special_tokens=True)
         
         return caption
