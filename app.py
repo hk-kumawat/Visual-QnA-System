@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 from io import BytesIO
-from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration, GPT2Tokenizer, GPT2LMHeadModel
+from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration, GPT2LMHeadModel, GPT2Tokenizer
 
 # Set page layout to wide
 st.set_page_config(page_title="Visual Question Answering", layout="wide")
@@ -14,16 +14,9 @@ model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vq
 blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
-# Load text generation model (GPT-2)
-gpt2_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
-gpt2_model = GPT2LMHeadModel.from_pretrained("gpt2")
-
-# Function to expand short answers
-def expand_answer(short_answer):
-    inputs = gpt2_tokenizer.encode(short_answer, return_tensors='pt')
-    outputs = gpt2_model.generate(inputs, max_length=50, num_return_sequences=1)
-    expanded_answer = gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return expanded_answer
+# Load GPT model for text generation (elaboration)
+gpt_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+gpt_model = GPT2LMHeadModel.from_pretrained("gpt2")
 
 # Function to get the answer to a question
 def get_answer(image, text):
@@ -38,11 +31,9 @@ def get_answer(image, text):
         outputs = model(**encoding)
         logits = outputs.logits
         idx = logits.argmax(-1).item()
-        short_answer = model.config.id2label[idx]
+        answer = model.config.id2label[idx]
 
-        # Expand the short answer
-        detailed_answer = expand_answer(short_answer)
-        return detailed_answer
+        return answer
 
     except Exception as e:
         return str(e)
@@ -63,9 +54,29 @@ def generate_caption(image):
     except Exception as e:
         return str(e)
 
+# Function to elaborate on a short answer using GPT
+def elaborate_answer(answer, caption):
+    try:
+        # Generate a prompt to ask GPT to elaborate on the answer
+        prompt = f"The answer to the question is: '{answer}'. Based on the image caption: '{caption}', please provide a detailed description."
+        
+        # Encode the prompt
+        inputs = gpt_tokenizer.encode(prompt, return_tensors="pt")
+
+        # Generate response using GPT
+        output = gpt_model.generate(inputs, max_length=100, num_return_sequences=1, no_repeat_ngram_size=2)
+        
+        # Decode the generated output
+        elaborated_answer = gpt_tokenizer.decode(output[0], skip_special_tokens=True)
+        
+        return elaborated_answer
+
+    except Exception as e:
+        return str(e)
+
 # Set up the Streamlit app
-st.title("🔍 Visual Question Answering 🖼️")
-st.write("Upload an image and ask a question to get an answer!")
+st.title("🔍 Visual Question Answering 🖼️ ")
+st.write("Upload an image and choose or write a question to get an answer!")
 
 # Add custom CSS for styling
 st.markdown(
@@ -109,27 +120,33 @@ with col1:
         # Display the caption with previous formatting and centered
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
-# Custom Question Input
+        # Initialize an empty list for suggested questions (can add later if required)
+        suggested_questions = []
+    else:
+        suggested_questions = []  # Handle case where no image is uploaded
+
+# Question Input (Write your own question)
 with col2:
     # Store the selected question in session state to persist its value
     if 'question' not in st.session_state:
         st.session_state['question'] = ""
 
-    st.markdown("---")
-
     # Allow user to type their own question
     question = st.text_input("Your question", value=st.session_state['question'])
 
-    # Button for prediction (only show if a question is provided)
+    # Button for prediction (only show if custom question is selected)
     if uploaded_file and question:
         if st.button("Predict Answer"):
             image_bytes = uploaded_file.getvalue()
 
-            # Get the answer
-            answer = get_answer(image_bytes, question)
+            # Get the short answer from VQA
+            short_answer = get_answer(image_bytes, question)
 
-            # Display the answer using st.success()
-            st.success(f"Answer: {answer}")
+            # Elaborate the answer using GPT
+            elaborated_answer = elaborate_answer(short_answer, caption)
+
+            # Display the elaborated answer
+            st.success(f"Detailed Answer: {elaborated_answer}")
 
             # After showing the answer, reset question input field for new input
             st.session_state['question'] = ""  # Clear the 'Your question' box for next input
