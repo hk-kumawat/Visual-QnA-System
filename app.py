@@ -13,10 +13,11 @@ blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-
 # Function to get the answer to a question using BLIP-2
 def get_answer(image, text):
     try:
+        # Check if image or question is None or empty
         if image is None:
-            return "No image provided"
+            return "No image provided."
         if not text or text.strip() == "":
-            return "No question provided"
+            return "No question provided."
 
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
@@ -31,7 +32,7 @@ def get_answer(image, text):
         return answer
 
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Error occurred: {str(e)}"
 
 # Set up the Streamlit app
 st.title("🔍 Visual Question Answering 🖼️")
@@ -73,8 +74,6 @@ with col2:
     # Button for prediction (only show if question is input)
     if uploaded_file and question:
         if st.button("Get Answer"):
-            image_bytes = uploaded_file.getvalue()
-
             # Get the detailed answer from BLIP-2
             answer = get_answer(image_bytes, question)
 
