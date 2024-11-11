@@ -32,16 +32,16 @@ def answer_question(image, question):
     try:
         # Process image and question for VQA
         img = Image.open(BytesIO(image)).convert("RGB")
-        inputs = vqa_processor(img, question, return_tensors="pt")
+        inputs = vqa_processor(images=img, text=question, return_tensors="pt")
         
         # Generate answer from model
         output = vqa_model.generate(**inputs)
         answer = vqa_processor.decode(output[0], skip_special_tokens=True)
         
         # Check if the model is simply echoing the question
-        if answer.lower().strip() == question.lower().strip():
-            answer = "I'm not sure about the answer. Could you please rephrase your question or ask something else?"
-        
+        if answer.strip().lower() == question.strip().lower():
+            answer = "I'm not sure about the answer to that. Could you please rephrase your question or ask something else related to the image?"
+
         return answer
     except Exception as e:
         return f"Error generating answer: {e}"
