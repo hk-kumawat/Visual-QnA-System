@@ -8,3 +8,4 @@ streamlit
 python-multipart
 timm
 python-dotenv
+langchain
