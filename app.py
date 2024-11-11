@@ -1,72 +1,45 @@
 import streamlit as st
 from PIL import Image
 from io import BytesIO
-from transformers import BlipProcessor, BlipForConditionalGeneration, pipeline
+from transformers import BlipProcessor, BlipForConditionalGeneration
 
-# Set page layout to wide
-st.set_page_config(page_title="Visual Question Answering", layout="wide")
+# Set up the page layout
+st.set_page_config(page_title="Advanced Visual Question Answering", layout="wide")
 
-# Load models with error handling
+# Load the VQA model and processor with error handling
 try:
-    # Load BLIP pipeline for image captioning
-    caption_pipeline = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
-    
-    # Load BLIP processor and model for VQA
-    vqa_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-    vqa_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+    # Using a specialized VQA model
+    vqa_processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
+    vqa_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base")
 except Exception as e:
     st.error(f"Error loading models: {e}")
 
-# Function to generate image caption
-def generate_caption(image):
-    try:
-        # Process image and generate caption
-        img = Image.open(BytesIO(image)).convert("RGB")
-        caption = caption_pipeline(img)[0]['generated_text']
-        return caption
-    except Exception as e:
-        return f"Error generating caption: {e}"
-
-# Function to answer a question about the image
+# Function to answer a question based on an image
 def answer_question(image, question):
     try:
-        # Generate initial caption for image context
-        caption = generate_caption(image)
-        
-        # Provide context for answering questions based on image caption
-        combined_input = f"Image context: {caption}. Now answer the question: {question}"
-
-        # Process image and combined input for VQA
+        # Load and prepare the image
         img = Image.open(BytesIO(image)).convert("RGB")
-        inputs = vqa_processor(images=img, text=combined_input, return_tensors="pt")
         
-        # Generate answer from model with adjusted token limits
-        output = vqa_model.generate(**inputs, max_length=50, max_new_tokens=30)
+        # Process image and question as inputs
+        inputs = vqa_processor(images=img, text=question, return_tensors="pt")
+        
+        # Generate a response with an increased maximum token length
+        output = vqa_model.generate(**inputs, max_length=50, num_beams=5, early_stopping=True)
+        
+        # Decode and return the answer
         answer = vqa_processor.decode(output[0], skip_special_tokens=True)
-        
-        # Check if the model echoes the question
-        if answer.strip().lower() == question.strip().lower():
-            answer = "I'm not sure, but based on the image, it might be doing something related to the caption context. Please rephrase or ask another question!"
-
         return answer
     except Exception as e:
         return f"Error generating answer: {e}"
 
-# Set up the Streamlit app
-st.title("🔍 Visual Question Answering 🖼️")
-st.write("Upload an image and ask a question to get a detailed answer based on the content of the image.")
+# Streamlit interface setup
+st.title("🔍 Advanced Visual Question Answering 🖼️")
+st.write("Upload an image and ask a question. The app will provide an answer based on the image content.")
 
-# Add custom CSS for styling
+# CSS styling for customized look
 st.markdown(
     """
     <style>
-    .title {
-        text-align: center;
-        font-size: 40px;
-        color: #4CAF50;
-        font-weight: bold;
-        margin-bottom: 50px;
-    }
     .centered {
         text-align: center;
         font-size: 20px;
@@ -80,36 +53,28 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Create columns for image upload and input fields
+# Image upload and question input
 col1, col2 = st.columns(2)
 
-# Image upload
+# Image upload section
 with col1:
     uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
-
     if uploaded_file is not None:
         # Display the uploaded image
         st.image(uploaded_file, use_container_width=True)
-        
-        # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
-        caption = generate_caption(image_bytes)
-        st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
     else:
-        caption = None  # Handle case where no image is uploaded
+        image_bytes = None  # Ensure image_bytes is defined even if no image is uploaded
 
-# Custom Question Input
+# Question input section
 with col2:
-    # Allow user to type their question if an image is uploaded
-    question = st.text_input("Ask a question about the image")
-    
-    # Button for prediction (only show if an image is uploaded and a question is asked)
-    if uploaded_file and question:
-        if st.button("Get Answer"):
-            # Get the answer
+    if image_bytes:
+        question = st.text_input("Ask a question about the image")
+        
+        # Trigger the model to answer upon button click
+        if question and st.button("Get Answer"):
+            # Generate and display answer
             answer = answer_question(image_bytes, question)
-            
-            # Display the answer
             st.success(f"Answer: {answer}")
 
 # Footer
