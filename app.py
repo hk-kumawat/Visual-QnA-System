@@ -102,6 +102,10 @@ with col2:
     if 'question' not in st.session_state:
         st.session_state['question'] = ""
 
+
+    st.markdown("<br>")
+
+
     # Allow user to type their own question
     question = st.text_input("Your question", value=st.session_state['question'])
 
