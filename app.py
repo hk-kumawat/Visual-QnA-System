@@ -103,7 +103,7 @@ with col2:
         st.session_state['question'] = ""
 
 
-    st.markdown("<br>")
+    st.markdown("---")
 
 
     # Allow user to type their own question
