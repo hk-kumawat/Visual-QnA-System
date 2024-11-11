@@ -50,29 +50,9 @@ def generate_caption(image):
     except Exception as e:
         return str(e)
 
-# Function to generate questions based on the caption
-def generate_questions_from_caption(caption):
-    questions = []
-    caption_lower = caption.lower()
-
-    # Example logic to generate questions based on the caption's content
-    if "person" in caption_lower:
-        questions.append("What is the person doing in the image?")
-    if "dog" in caption_lower or "cat" in caption_lower:
-        questions.append("What animal is in the image?")
-    if "tree" in caption_lower:
-        questions.append("What type of tree is in the image?")
-    if "car" in caption_lower:
-        questions.append("What color is the car?")
-    
-    # Add a generic question
-    questions.append("What can you tell me about the image?")
-
-    return questions
-
 # Set up the Streamlit app
 st.title("🔍 Visual Question Answering 🖼️ ")
-st.write("Upload an image and choose or write a question to get an answer!")
+st.write("Upload an image and ask a question to get an answer!")
 
 # Add custom CSS for styling
 st.markdown(
@@ -93,7 +73,6 @@ st.markdown(
         margin-top: 20px;
         line-height: 1.6;
     }
-    
     </style>
     """,
     unsafe_allow_html=True
@@ -117,30 +96,16 @@ with col1:
         # Display the caption with previous formatting and centered
         st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
-        # Generate questions based on the caption
-        suggested_questions = generate_questions_from_caption(caption)
-    else:
-        suggested_questions = []  # Handle case where no image is uploaded
-
-# Suggested Question Input or Custom Question Input
+# Custom Question Input
 with col2:
     # Store the selected question in session state to persist its value
     if 'question' not in st.session_state:
         st.session_state['question'] = ""
 
-    # Dropdown to select a question or write your own
-    selected_question = st.selectbox("Choose a suggested question or write your own", 
-                                     [""] + suggested_questions, index=0)
-    
-    # Allow user to type their own question if they choose to
-    if selected_question == "":
-        # Hide 'Your question' input box if a suggestion is selected
-        question = st.text_input("Your question", value=st.session_state['question'])
-    else:
-        question = selected_question
-        st.session_state['question'] = question  # Save the selected question to session state
+    # Allow user to type their own question
+    question = st.text_input("Your question", value=st.session_state['question'])
 
-    # Button for prediction (only show if custom question is selected)
+    # Button for prediction (only show if a question is provided)
     if uploaded_file and question:
         if st.button("Predict Answer"):
             image_bytes = uploaded_file.getvalue()
