@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 from io import BytesIO
-from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration
+from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration, GPT2Tokenizer, GPT2LMHeadModel
 
 # Set page layout to wide
 st.set_page_config(page_title="Visual Question Answering", layout="wide")
@@ -13,6 +13,17 @@ model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vq
 # Load image captioning model (BLIP)
 blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+
+# Load text generation model (GPT-2)
+gpt2_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+gpt2_model = GPT2LMHeadModel.from_pretrained("gpt2")
+
+# Function to expand short answers
+def expand_answer(short_answer):
+    inputs = gpt2_tokenizer.encode(short_answer, return_tensors='pt')
+    outputs = gpt2_model.generate(inputs, max_length=50, num_return_sequences=1)
+    expanded_answer = gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return expanded_answer
 
 # Function to get the answer to a question
 def get_answer(image, text):
@@ -27,9 +38,11 @@ def get_answer(image, text):
         outputs = model(**encoding)
         logits = outputs.logits
         idx = logits.argmax(-1).item()
-        answer = model.config.id2label[idx]
+        short_answer = model.config.id2label[idx]
 
-        return answer
+        # Expand the short answer
+        detailed_answer = expand_answer(short_answer)
+        return detailed_answer
 
     except Exception as e:
         return str(e)
@@ -51,7 +64,7 @@ def generate_caption(image):
         return str(e)
 
 # Set up the Streamlit app
-st.title("🔍 Visual Question Answering 🖼️ ")
+st.title("🔍 Visual Question Answering 🖼️")
 st.write("Upload an image and ask a question to get an answer!")
 
 # Add custom CSS for styling
@@ -102,9 +115,7 @@ with col2:
     if 'question' not in st.session_state:
         st.session_state['question'] = ""
 
-
     st.markdown("---")
-
 
     # Allow user to type their own question
     question = st.text_input("Your question", value=st.session_state['question'])
@@ -122,7 +133,6 @@ with col2:
 
             # After showing the answer, reset question input field for new input
             st.session_state['question'] = ""  # Clear the 'Your question' box for next input
-
 
 # Footer
 st.markdown("---")
