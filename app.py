@@ -47,13 +47,25 @@ def generate_caption(image):
 st.title("🔍 Visual Question Answering 🖼️")
 st.write("Upload an image and ask a question to get an answer!")
 
-# Add custom CSS for styling
+# Help Section
 st.markdown(
     """
-    <style>
-    .title { text-align: center; font-size: 40px; color: #4CAF50; font-weight: bold; margin-bottom: 50px; }
-    .centered { text-align: center; font-size: 20px; font-style: italic; color: #333; margin-top: 20px; line-height: 1.6; }
-    </style>
+    <div style="background-color: #f1f1f1; padding: 10px; border-radius: 10px;">
+    <h3 style="color: #333;">📘 Help: How to use this app</h3>
+    <p style="color: #333;">Welcome to the Visual Question Answering app! Here's how you can make the most of it:</p>
+    <ul style="color: #333;">
+        <li><strong>Step 1:</strong> Upload an image by clicking on the "Upload Image" button.</li>
+        <li><strong>Step 2:</strong> After the image is uploaded, type in your question in the "Your question" box.</li>
+        <li><strong>Step 3:</strong> Click the "Predict Answer" button to get an answer based on the image.</li>
+    </ul>
+    <p style="color: #ff6600; font-weight: bold;">⚠️ Please note:</p>
+    <p style="color: #333;">This app works best with simple questions related to the image. Complex questions might not be processed well. For example:</p>
+    <ul style="color: #333;">
+        <li><strong>Good Question:</strong> "What is in the image?"</li>
+        <li><strong>Not Ideal Question:</strong> "Can you explain in detail what this object is and how it works?"</li>
+    </ul>
+    <p style="color: #333;">For best results, try to keep your questions clear and simple!</p>
+    </div>
     """,
     unsafe_allow_html=True
 )
