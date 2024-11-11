@@ -30,17 +30,23 @@ def generate_caption(image):
 # Function to answer a question about the image
 def answer_question(image, question):
     try:
-        # Process image and question for VQA
+        # Generate initial caption for image context
+        caption = generate_caption(image)
+        
+        # Combine caption and question for better context
+        combined_input = f"{caption}. Question: {question}"
+
+        # Process image and combined input for VQA
         img = Image.open(BytesIO(image)).convert("RGB")
-        inputs = vqa_processor(images=img, text=question, return_tensors="pt")
+        inputs = vqa_processor(images=img, text=combined_input, return_tensors="pt")
         
         # Generate answer from model
         output = vqa_model.generate(**inputs)
         answer = vqa_processor.decode(output[0], skip_special_tokens=True)
         
-        # Check if the model is simply echoing the question
+        # Check if the model echoes the question
         if answer.strip().lower() == question.strip().lower():
-            answer = "I'm not sure about the answer to that. Could you please rephrase your question or ask something else related to the image?"
+            answer = "I'm not sure, but based on the image, it might be doing something related to the caption context. Please rephrase or ask another question!"
 
         return answer
     except Exception as e:
