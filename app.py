@@ -21,7 +21,7 @@ def get_answer(image, question):
         if caption == "Unknown":
             return "Failed to generate caption for the image."
 
-        # Prepare the input to the BLIP model with the caption and question
+        # Prepare the input for the BLIP model with caption and question
         input_text = f"Caption: {caption} Question: {question}"
 
         # Generate the answer using BLIP model with max_new_tokens to control output length
