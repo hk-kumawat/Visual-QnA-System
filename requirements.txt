@@ -9,3 +9,4 @@ python-multipart
 timm
 python-dotenv
 langchain
+langchain_groq
