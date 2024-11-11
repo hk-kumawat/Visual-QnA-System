@@ -21,9 +21,15 @@ def get_answer(image, text):
 
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
+        
+        # Debug: Check image data
+        st.write("Image data loaded successfully")
 
         # Prepare the image and question for BLIP-2
         inputs = blip_processor(images=img, text=text, return_tensors="pt")
+
+        # Debug: Check inputs
+        st.write(f"Inputs for BLIP model: {inputs}")
 
         if inputs is None:
             return "Error: Failed to create inputs for the BLIP model."
@@ -35,6 +41,7 @@ def get_answer(image, text):
         return answer
 
     except Exception as e:
+        st.write(f"Error occurred: {str(e)}")
         return f"Error occurred: {str(e)}"
 
 # Set up the Streamlit app
