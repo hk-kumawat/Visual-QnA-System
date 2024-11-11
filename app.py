@@ -2,15 +2,18 @@ import streamlit as st
 from PIL import Image
 from io import BytesIO
 from transformers import BlipProcessor, BlipForConditionalGeneration
+import gc
+import torch
 
 # Set up the page layout
 st.set_page_config(page_title="Advanced Visual Question Answering", layout="wide")
 
 # Load the VQA model and processor with error handling
 try:
-    # Using a specialized VQA model
-    vqa_processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-base")
-    vqa_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-base")
+    # Use a smaller VQA model for reduced memory consumption
+    vqa_processor = BlipProcessor.from_pretrained("Salesforce/blip-vqa-small")
+    vqa_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-vqa-small")
+    vqa_model = vqa_model.half()  # Use half precision to reduce memory usage
 except Exception as e:
     st.error(f"Error loading models: {e}")
 
@@ -24,10 +27,15 @@ def answer_question(image, question):
         inputs = vqa_processor(images=img, text=question, return_tensors="pt")
         
         # Generate a response with an increased maximum token length
-        output = vqa_model.generate(**inputs, max_length=50, num_beams=5, early_stopping=True)
+        output = vqa_model.generate(**inputs, max_length=20, num_beams=3, early_stopping=True)
         
         # Decode and return the answer
         answer = vqa_processor.decode(output[0], skip_special_tokens=True)
+        
+        # Clear memory after processing
+        gc.collect()
+        torch.cuda.empty_cache()
+
         return answer
     except Exception as e:
         return f"Error generating answer: {e}"
@@ -35,23 +43,6 @@ def answer_question(image, question):
 # Streamlit interface setup
 st.title("🔍 Advanced Visual Question Answering 🖼️")
 st.write("Upload an image and ask a question. The app will provide an answer based on the image content.")
-
-# CSS styling for customized look
-st.markdown(
-    """
-    <style>
-    .centered {
-        text-align: center;
-        font-size: 20px;
-        font-style: italic;
-        color: #333;
-        margin-top: 20px;
-        line-height: 1.6;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # Image upload and question input
 col1, col2 = st.columns(2)
