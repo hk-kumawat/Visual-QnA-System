@@ -61,7 +61,7 @@ st.markdown(
     <p style="color: #ff6600; font-weight: bold;">⚠️ Please note:</p>
     <p style="color: #333;">This app works best with simple questions related to the image. Complex questions might not be processed well because:</p>
     <ul style="color: #333;">
-        <li>Our model is optimized for answering direct and specific questions about objects in the image.</li>
+        <li>The model is optimized for answering direct and specific questions about objects in the image.</li>
         <li>It cannot describe the image in detail or provide complex explanations about the context.</li>
         <li>Complex questions that require detailed analysis or explanation might not produce accurate or meaningful answers.</li>
         <li>It’s best to ask questions that are clear and straightforward, focused on identifying or confirming visible objects in the image.</li>
