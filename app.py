@@ -112,9 +112,12 @@ with col2:
             # After showing the answer, reset question input field for new input
             st.session_state['question'] = ""  # Clear the 'Your question' box for next input
 
-# Footer
-st.markdown("---")
+
+# Footer section
+st.markdown("---")  
 st.markdown(
+    "<div style='text-align: center; color: #7f8c8d; font-size: 16px;'>"
     "<p style='text-align: center;'>Where <strong>Vision</strong> Meets <strong>Intelligence</strong> - A Creation by <strong>Harshal Kumawat</strong> 👁️🤖</p>",
+    "</div>",
     unsafe_allow_html=True
 )
