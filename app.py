@@ -14,28 +14,38 @@ model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vq
 blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
-# Function to get the answer to a question
-def get_answer(image, text):
+# Function to get a detailed answer to a question
+def get_answer(image, question):
     try:
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
+        
+        # Generate a caption for the image first
+        caption = generate_caption(image)
+
+        # Combine the caption with the question to provide context
+        context = f"Image description: {caption}. Question: {question}"
+
         # Prepare inputs for VQA
-        encoding = processor(img, text, return_tensors="pt")
-        # Forward pass
+        encoding = processor(img, context, return_tensors="pt")
+
+        # Forward pass through VQA model
         outputs = model(**encoding)
         logits = outputs.logits
         idx = logits.argmax(-1).item()
         answer = model.config.id2label[idx]
+        
+        # Return the detailed answer
         return answer
     except Exception as e:
         return str(e)
 
-# Function to generate image caption
+# Function to generate image caption using BLIP
 def generate_caption(image):
     try:
         # Prepare image for captioning
         img = Image.open(BytesIO(image)).convert("RGB")
-        # Generate caption
+        # Generate caption using BLIP
         inputs = blip_processor(images=img, return_tensors="pt")
         out = blip_model.generate(**inputs)
         caption = blip_processor.decode(out[0], skip_special_tokens=True)
@@ -65,8 +75,8 @@ col1, col2 = st.columns(2)
 with col1:
     uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
-        # Display the uploaded image
-        st.image(uploaded_file, use_container_width=True)
+        # Display the uploaded image with a fixed width (500px)
+        st.image(uploaded_file, width=500)
         # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
         caption = generate_caption(image_bytes)
@@ -86,7 +96,7 @@ with col2:
     if uploaded_file and question:
         if st.button("Predict Answer"):
             image_bytes = uploaded_file.getvalue()
-            # Get the answer
+            # Get the detailed answer
             answer = get_answer(image_bytes, question)
             # Display the answer using st.success()
             st.success(f"Answer: {answer}")
