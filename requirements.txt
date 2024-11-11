@@ -7,4 +7,3 @@ uvicorn
 streamlit
 python-multipart
 timm
-tokenizers
