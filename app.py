@@ -33,8 +33,8 @@ def answer_question(image, question):
         # Generate initial caption for image context
         caption = generate_caption(image)
         
-        # Combine caption and question for better context
-        combined_input = f"{caption}. Question: {question}"
+        # Provide context for answering questions based on image caption
+        combined_input = f"Image context: {caption}. Now answer the question: {question}"
 
         # Process image and combined input for VQA
         img = Image.open(BytesIO(image)).convert("RGB")
