@@ -21,15 +21,12 @@ def get_answer(image, text):
 
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
-        
-        # Debug: Check image data
-        print("Image data loaded successfully")
 
         # Prepare the image and question for BLIP-2
         inputs = blip_processor(images=img, text=text, return_tensors="pt")
 
-        # Debug: Check inputs
-        print(f"Inputs for BLIP model: {inputs}")
+        if inputs is None:
+            return "Error: Failed to create inputs for the BLIP model."
 
         # Generate an answer based on the image and question
         out = blip_model.generate(**inputs)
