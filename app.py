@@ -38,6 +38,10 @@ def answer_question(image, question):
         output = vqa_model.generate(**inputs)
         answer = vqa_processor.decode(output[0], skip_special_tokens=True)
         
+        # Check if the model is simply echoing the question
+        if answer.lower().strip() == question.lower().strip():
+            answer = "I'm not sure about the answer. Could you please rephrase your question or ask something else?"
+        
         return answer
     except Exception as e:
         return f"Error generating answer: {e}"
