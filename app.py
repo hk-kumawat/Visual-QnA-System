@@ -47,42 +47,34 @@ def generate_caption(image):
 st.title("🔍 Visual Question Answering 🖼️")
 st.write("Upload an image and ask a question to get an answer!")
 
-# Create a clickable icon (question mark) for help
-if 'show_help' not in st.session_state:
-    st.session_state['show_help'] = False
-
-# Display an icon, when clicked, will toggle the help section
-help_icon = st.markdown('<div style="font-size: 24px; cursor: pointer;" onclick="window.location.href=\'#help-section\'">❓</div>', unsafe_allow_html=True)
-
-# Conditionally display help section based on state
-if st.session_state['show_help']:
+# Collapsible Help Section
+with st.expander("📘 How to use this app"):
     st.markdown(
         """
-        <div style="background-color: #f1f1f1; padding: 10px; border-radius: 10px;">
-        <h3 style="color: #333;">📘 Help: How to use this app</h3>
-        <p style="color: #333;">Welcome to the Visual Question Answering app! Here's how you can make the most of it:</p>
-        <ul style="color: #333;">
-            <li><strong>Step 1:</strong> Upload an image by clicking on the "Upload Image" button.</li>
-            <li><strong>Step 2:</strong> After the image is uploaded, type in your question in the "Your question" box.</li>
-            <li><strong>Step 3:</strong> Click the "Predict Answer" button to get an answer based on the image.</li>
-        </ul>
-        <p style="color: #ff6600; font-weight: bold;">⚠️ Please note:</p>
-        <p style="color: #333;">This app works best with simple questions related to the image. Complex questions might not be processed well because:</p>
-        <ul style="color: #333;">
-            <li>The model is optimized for answering direct and specific questions about objects in the image.</li>
-            <li>It cannot describe the image in detail or provide complex explanations about the context.</li>
-            <li>Complex questions that require detailed analysis or explanation might not produce accurate or meaningful answers.</li>
-            <li>It’s best to ask questions that are clear and straightforward, focused on identifying or confirming visible objects in the image.</li>
-        </ul>
-        <p style="color: #333;">For example:</p>
-        <ul style="color: #333;">
-            <li><strong>Good Question:</strong> "Is the <object> present in the image?"</li>
-            <li><strong>Not Ideal Question:</strong> "Can you describe the image in detail or explain the context of the objects?"</li>
-        </ul>
-        <p style="color: #333;">For best results, try to keep your questions clear and simple!</p>
-        </div>
-        """,
-        unsafe_allow_html=True
+        Welcome to the Visual Question Answering app! Here's how you can make the most of it:
+
+        **Step 1**: Upload an image by clicking on the "Upload Image" button.
+        
+        **Step 2**: After the image is uploaded, type in your question in the "Your question" box.
+        
+        **Step 3**: Click the "Predict Answer" button to get an answer based on the image.
+        
+        ⚠️ **Please note**:
+        
+        This app works best with simple questions related to the image. Complex questions might not be processed well because:
+        
+        - The model is optimized for answering direct and specific questions about objects in the image.
+        - It cannot describe the image in detail or provide complex explanations about the context.
+        - Complex questions that require detailed analysis or explanation might not produce accurate or meaningful answers.
+        - It’s best to ask questions that are clear and straightforward, focused on identifying or confirming visible objects in the image.
+
+        **For example:**
+
+        - **Good Question:** "Is the <object> present in the image?"
+        - **Not Ideal Question:** "Can you describe the image in detail or explain the context of the objects?"
+
+        For best results, try to keep your questions clear and simple!
+        """
     )
 
 # Create columns for image upload and input fields
