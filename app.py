@@ -59,10 +59,17 @@ st.markdown(
         <li><strong>Step 3:</strong> Click the "Predict Answer" button to get an answer based on the image.</li>
     </ul>
     <p style="color: #ff6600; font-weight: bold;">⚠️ Please note:</p>
-    <p style="color: #333;">This app works best with simple questions related to the image. Complex questions might not be processed well. For example:</p>
+    <p style="color: #333;">This app works best with simple questions related to the image. Complex questions might not be processed well because:</p>
     <ul style="color: #333;">
-        <li><strong>Good Question:</strong> "Is the <em>&lt;object&gt;</em> present in the image?"</li>
-        <li><strong>Not Ideal Question:</strong> "Can you explain in detail what this object is and how it works?"</li>
+        <li>Our model is optimized for answering direct and specific questions about objects in the image.</li>
+        <li>It cannot describe the image in detail or provide complex explanations about the context.</li>
+        <li>Complex questions that require detailed analysis or explanation might not produce accurate or meaningful answers.</li>
+        <li>It’s best to ask questions that are clear and straightforward, focused on identifying or confirming visible objects in the image.</li>
+    </ul>
+    <p style="color: #333;">For example:</p>
+    <ul style="color: #333;">
+        <li><strong>Good Question:</strong> "Is the <object> present in the image?"</li>
+        <li><strong>Not Ideal Question:</strong> "Can you describe the image in detail or explain the context of the objects?"</li>
     </ul>
     <p style="color: #333;">For best results, try to keep your questions clear and simple!</p>
     </div>
