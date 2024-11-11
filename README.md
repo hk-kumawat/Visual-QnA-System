@@ -12,10 +12,11 @@ Try out the Visual QnA System! 👉🏻 [![Experience It! 🌟](https://img.shie
 
 <br>
 
+
 _Below is a preview of the Visual QnA System in action. Upload an image and ask questions! 👇🏻_
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/a3df4415-d9a3-41e2-b819-204d15b23abf" alt="demo">
+  <img src="https://github.com/user-attachments/assets/b927ba92-00a9-4152-9b5b-5e9d38581ea7" alt="demo">
 </p>
 
 <br>
