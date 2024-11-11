@@ -1,6 +1,6 @@
 # 🔍 **Visual QnA System** 🖼️
 
-![Visual QnA System](https://github.com/user-attachments/assets/your-image-link)
+![Visual QnA System](https://github.com/user-attachments/assets/3e83cb9a-cc1a-4cd3-a0b4-a0a9affd7bbc)
 
 ## Overview
 
@@ -8,14 +8,14 @@ The **Visual QnA System** enables users to upload an image and ask specific ques
 
 ## Live Demo
 
-Try out the Visual QnA System! 👉🏻 [![Experience It! 🌟](https://img.shields.io/badge/Experience%20It!-blue)](https://your-deployed-app-link)
+Try out the Visual QnA System! 👉🏻 [![Experience It! 🌟](https://img.shields.io/badge/Experience%20It!-blue)](https://ask-visual.streamlit.app/)
 
 <br>
 
 _Below is a preview of the Visual QnA System in action. Upload an image and ask questions! 👇🏻_
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/your-demo-image" alt="demo">
+  <img src="https://github.com/user-attachments/assets/a3df4415-d9a3-41e2-b819-204d15b23abf" alt="demo">
 </p>
 
 <br>
@@ -29,8 +29,9 @@ _Below is a preview of the Visual QnA System in action. Upload an image and ask 
 5. [Technologies Used](#technologies-used)
 6. [Results](#results)
 7. [Conclusion](#conclusion)
-8. [License](#license)
-9. [Contact](#contact)
+8. [Future Enhancements](#future-enhancements)
+9. [License](#license)
+10. [Contact](#contact)
 
 <br>
 
@@ -59,7 +60,7 @@ _Below is a preview of the Visual QnA System in action. Upload an image and ask 
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/hk-kumawat/Visual-QnA.git
+   https://github.com/hk-kumawat/Visual-QnA-System.git
    ```
 
 2. **Install dependencies**:
@@ -122,6 +123,17 @@ With the ability to analyze and answer questions about images, it can enhance **
 
 <br>
 
+## Future Enhancements🚀
+
+While the **Visual QnA System** currently delivers concise, single-line responses, future improvements could enable more detailed, context-aware answers. Here are a few potential upgrades:
+
+- **Extended Answer Generation**: Integrate advanced language models to generate detailed answers that provide in-depth information based on image content.
+- **Context Awareness**: Enable the system to consider multiple objects and interactions in an image, enhancing its capability to answer complex questions.
+- **Multilingual Support**: Add the ability to understand and answer questions in various languages, broadening accessibility.
+- **Enhanced Accuracy with Fine-Tuning**: Train on diverse datasets for specialized fields, such as medical imaging or geographical scenes, to improve precision and expand application areas.
+
+
+<br> 
 
 ## License📝
 
