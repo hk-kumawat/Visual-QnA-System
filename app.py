@@ -6,9 +6,22 @@ from transformers import BlipProcessor, BlipForConditionalGeneration
 # Set page layout to wide
 st.set_page_config(page_title="Visual Question Answering", layout="wide")
 
+# Function to load the model with error handling
+def load_model(model_name):
+    try:
+        processor = BlipProcessor.from_pretrained(model_name)
+        model = BlipForConditionalGeneration.from_pretrained(model_name)
+        return processor, model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None, None
+
 # Load BLIP-2 model (BLIP's enhanced version for question answering)
-blip_processor = BlipProcessor.from_pretrained("Salesforce/blip2-opt-6.7b")
-blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-6.7b")
+blip_processor, blip_model = load_model("Salesforce/blip2-opt-6.7b")
+
+# Ensure the model is loaded successfully
+if not blip_processor or not blip_model:
+    st.stop()
 
 # Function to get the answer to a question using BLIP-2
 def get_answer(image, text):
@@ -21,15 +34,9 @@ def get_answer(image, text):
 
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
-        
-        # Debug: Check image data
-        st.write("Image data loaded successfully")
 
         # Prepare the image and question for BLIP-2
         inputs = blip_processor(images=img, text=text, return_tensors="pt")
-
-        # Debug: Check inputs
-        st.write(f"Inputs for BLIP model: {inputs}")
 
         if inputs is None:
             return "Error: Failed to create inputs for the BLIP model."
@@ -41,7 +48,6 @@ def get_answer(image, text):
         return answer
 
     except Exception as e:
-        st.write(f"Error occurred: {str(e)}")
         return f"Error occurred: {str(e)}"
 
 # Set up the Streamlit app
@@ -99,3 +105,4 @@ st.markdown(
     "<p style='text-align: center;'>Where <strong>Vision</strong> Meets <strong>Intelligence</strong> - A Creation by <strong>Harshal Kumawat</strong> 👁️🤖</p>",
     unsafe_allow_html=True
 )
+
