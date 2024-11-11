@@ -1,44 +1,33 @@
 import streamlit as st
 from PIL import Image
 from io import BytesIO
-from transformers import ViltProcessor, ViltForQuestionAnswering, BlipProcessor, BlipForConditionalGeneration
+from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # Set page layout to wide
 st.set_page_config(page_title="Visual Question Answering", layout="wide")
 
-# Load VQA model
-processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
-model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
-
-# Load image captioning model (BLIP)
+# Load BLIP model for both image captioning and question answering
 blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
-# Function to get a detailed answer to a question
+# Function to get a detailed answer to a question (using BLIP)
 def get_answer(image, question):
     try:
         # Load and process the image
         img = Image.open(BytesIO(image)).convert("RGB")
         
-        # Generate a caption for the image first
+        # Generate caption for the image first
         caption = generate_caption(image)
         if caption == "Unknown":
             return "Failed to generate caption for the image."
 
-        # Combine the caption with the question to provide context
-        context = f"Image description: {caption}. Question: {question}"
-        print(f"Context for VQA model: {context}")  # Debug print
+        # Prepare the input to the BLIP model with the caption and question
+        input_text = f"Caption: {caption} Question: {question}"
 
-        # Prepare inputs for VQA
-        encoding = processor(img, context, return_tensors="pt")
-        
-        # Forward pass through VQA model
-        outputs = model(**encoding)
-        logits = outputs.logits
-        idx = logits.argmax(-1).item()
-        answer = model.config.id2label.get(idx, "Unknown")  # Get label, default to "Unknown" if not found
-        
-        print(f"Answer from model: {answer}")  # Debug print
+        # Generate the answer using BLIP model
+        inputs = blip_processor(images=img, text=input_text, return_tensors="pt")
+        out = blip_model.generate(**inputs)
+        answer = blip_processor.decode(out[0], skip_special_tokens=True)
         
         return answer
     except Exception as e:
@@ -53,8 +42,6 @@ def generate_caption(image):
         inputs = blip_processor(images=img, return_tensors="pt")
         out = blip_model.generate(**inputs)
         caption = blip_processor.decode(out[0], skip_special_tokens=True)
-        
-        print(f"Generated caption: {caption}")  # Debug print
         
         return caption
     except Exception as e:
