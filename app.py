@@ -65,8 +65,8 @@ col1, col2 = st.columns(2)
 with col1:
     uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
-        # Display the uploaded image
-        st.image(uploaded_file, use_container_width=True)
+        # Display the uploaded image with a fixed width (500px)
+        st.image(uploaded_file, width=500)
         # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
         caption = generate_caption(image_bytes)
