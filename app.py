@@ -1,116 +1,173 @@
 import streamlit as st
-from PIL import Image
-from io import BytesIO
-from transformers import VisualBertProcessor, VisualBertForQuestionAnswering, pipeline
+import os
+import time
+from dotenv import load_dotenv
+from langchain.chains import ConversationChain
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain_groq import ChatGroq
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# Set page layout to wide
-st.set_page_config(page_title="Visual Question Answering", layout="wide")
+# Load API keys from .env file
+load_dotenv()
+groq_api_key = os.environ['GROQ_API_KEY']
 
-# Load models with error handling
-try:
-    # Load image captioning pipeline
-    caption_pipeline = pipeline("image-to-text", model="Salesforce/blip-image-captioning-base")
-    
-    # Load VisualBERT processor and model for VQA
-    vqa_processor = VisualBertProcessor.from_pretrained("microsoft/visualbert-vqa")
-    vqa_model = VisualBertForQuestionAnswering.from_pretrained("microsoft/visualbert-vqa")
-except Exception as e:
-    st.error(f"Error loading models: {e}")
+# Function to analyze sentiment (Emotion Recognition)
+def analyze_sentiment(text):
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment_score = analyzer.polarity_scores(text)
+    return sentiment_score
 
-# Function to generate image caption
-def generate_caption(image):
-    try:
-        # Process image and generate caption
-        img = Image.open(BytesIO(image)).convert("RGB")
-        caption = caption_pipeline(img)[0]['generated_text']
-        return caption
-    except Exception as e:
-        return f"Error generating caption: {e}"
+def main():
+    st.title("Talk to Aura: The Smart Assistant That Understands You! 🤖💬")
+    st.markdown("*Dive into Aura’s world—ask anything, enjoy a unique conversation every time, with instant responses!*")
 
-# Function to answer a question about the image
-def answer_question(image, question):
-    try:
-        # Process image and question for VQA
-        img = Image.open(BytesIO(image)).convert("RGB")
-        encoding = vqa_processor(images=img, text=question, return_tensors="pt")
+    # Initialize memory to remember full conversation history
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+    if 'user_name' not in st.session_state:
+        st.session_state.user_name = None  # Initialize to None if not set
 
-        # Generate answer from model
-        outputs = vqa_model(**encoding)
-        logits = outputs.logits
-        idx = logits.argmax(-1).item()
-        answer = vqa_model.config.id2label[idx]
+    # Initialize Groq Langchain chat object
+    groq_chat = ChatGroq(
+        groq_api_key=groq_api_key,
+        model_name="mixtral-8x7b-32768"
+    )
 
-        # Check if the model echoes the question
-        if answer.strip().lower() == question.strip().lower():
-            answer = "I'm not sure about the answer to that. Could you please rephrase your question or ask something else related to the image?"
+    # Define the prompt template for the LLM chain
+    prompt_template = PromptTemplate(
+        input_variables=["input"],
+        template="You are a helpful assistant. Respond to the following question: {input}"
+    )
 
-        return answer
-    except Exception as e:
-        return f"Error generating answer: {e}"
+    # Initialize LLMChain with the prompt and Groq model
+    llm_chain = LLMChain(
+        llm=groq_chat,
+        prompt=prompt_template
+    )
 
-# Set up the Streamlit app
-st.title("🔍 Visual Question Answering 🖼️")
-st.write("Upload an image and ask a question to get a detailed answer based on the content of the image.")
+    # Input form with "Send" button
+    with st.form(key="chat_form", clear_on_submit=True):
+        user_question = st.text_area("Ask a question:", key="user_input")
+        send_button = st.form_submit_button("Send")
 
-# Add custom CSS for styling
-st.markdown(
-    """
-    <style>
-    .title {
-        text-align: center;
-        font-size: 40px;
-        color: #4CAF50;
-        font-weight: bold;
-        margin-bottom: 50px;
-    }
-    .centered {
-        text-align: center;
-        font-size: 20px;
-        font-style: italic;
-        color: #333;
-        margin-top: 20px;
-        line-height: 1.6;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Create columns for image upload and input fields
-col1, col2 = st.columns(2)
-
-# Image upload
-with col1:
-    uploaded_file = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"])
-
-    if uploaded_file is not None:
-        # Display the uploaded image
-        st.image(uploaded_file, use_container_width=True)
+    # Process the question if send_button is clicked
+    if send_button and user_question:
+        # Analyze sentiment of the user's input
+        sentiment = analyze_sentiment(user_question)
+        sentiment_label = "neutral"
+        if sentiment['compound'] >= 0.05:
+            sentiment_label = "positive"
+        elif sentiment['compound'] <= -0.05:
+            sentiment_label = "negative"
         
-        # Generate and display image caption centered below the image
-        image_bytes = uploaded_file.getvalue()
-        caption = generate_caption(image_bytes)
-        st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
+        # Respond based on sentiment
+        if "name" in user_question.lower() and st.session_state.user_name:
+            response_text = f"Your name is {st.session_state.user_name}."
+        elif "my name is" in user_question.lower():
+            # Store the user's name if they introduce themselves
+            name_start = user_question.lower().find("my name is") + len("my name is")
+            user_name = user_question[name_start:].strip()
+            st.session_state.user_name = user_name
+            response_text = f"Nice to meet you, {user_name}!"
+        else:
+            # Generate response using LLMChain
+            response_text = llm_chain.run(input=user_question)
+
+            # Customize response based on sentiment
+            if sentiment_label == "positive":
+                response_text = f"😊 {response_text}"
+            elif sentiment_label == "negative":
+                response_text = f"😔 {response_text}"
+            else:
+                response_text = f"🙂 {response_text}"
+
+        # Small delay to ensure sync on mobile
+        time.sleep(0.1)
+
+        # Save the conversation in session state
+        st.session_state.chat_history.insert(0, {'human': user_question, 'AI': response_text})
+
+    # Hide sidebar and toolbar
+    st.write("<style>div.css-1kyxreq {display: none;} div[data-testid='stToolbar'] {display: none;}</style>", unsafe_allow_html=True)
+
+    # Detect Streamlit theme setting (light/dark mode)
+    theme = st.get_option("theme.base")
+
+    # Define color schemes based on theme
+    if theme == "dark":
+        user_bg = "#00796b"
+        bot_bg = "#333"
+        text_color = "white"
     else:
-        caption = None  # Handle case where no image is uploaded
+        user_bg = "#e0f7fa"
+        bot_bg = "#f1f1f1"
+        text_color = "black"
 
-# Custom Question Input
-with col2:
-    # Allow user to type their question if an image is uploaded
-    question = st.text_input("Ask a question about the image")
-    
-    # Button for prediction (only show if an image is uploaded and a question is asked)
-    if uploaded_file and question:
-        if st.button("Get Answer"):
-            # Get the answer
-            answer = answer_question(image_bytes, question)
-            
-            # Display the answer
-            st.success(f"Answer: {answer}")
+    # Display conversation in reverse order (latest message on top)
+    for msg in st.session_state.chat_history:
+        # Adjust the width of the bubbles based on message length
+        user_width = min(50 + len(msg["human"]) // 5, 75)  # Limit width of user messages
+        bot_width = min(50 + len(msg["AI"]) // 5, 75)  # Limit width of bot messages
 
-# Footer
-st.markdown("---")
+        # Chatbot's response aligned left
+        st.markdown(
+            f"""
+            <div style="padding: 15px; border-radius: 8px; background-color: {bot_bg}; color: {text_color}; width: {bot_width}%; margin-right: auto; text-align: left; margin-top: 15px;">
+                <strong>Aura:</strong> {msg["AI"]}
+            </div>
+            """, unsafe_allow_html=True)
+
+        # User's message aligned right
+        st.markdown(
+            f"""
+            <div style="padding: 15px; border-radius: 8px; background-color: {user_bg}; color: {text_color}; width: {user_width}%; margin-left: auto; text-align: right; margin-top: 15px;">
+                <strong>User:</strong> {msg["human"]}
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Add smooth scrolling to the page for a better experience
+    st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
+
+    # Add hover effect for the send button (for better interactivity)
+    st.markdown(
+        """
+        <style>
+        .css-1gw3tw1.edgvbvh3 {
+            transition: background-color 0.3s ease;
+        }
+        .css-1gw3tw1.edgvbvh3:hover {
+            background-color: #00796b;
+            color: white;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+    # CSS for text box (optional for a more modern style)
+    st.markdown(
+        """
+        <style>
+        textarea {
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            padding: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        textarea:focus {
+            border-color: #00796b;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
+
+# Footer section
+st.markdown("---")  
 st.markdown(
-    "<p style='text-align: center;'>Where <strong>Vision</strong> Meets <strong>Intelligence</strong> - A Creation by <strong>Harshal Kumawat</strong> 👁️🤖</p>",
+    "<div style='text-align: center; color: #7f8c8d; font-size: 16px;'>"
+    "<p style='text-align: center;'>🔮 <strong>Brought to Life By</strong> - Harshal Kumawat 🤖</p>"
+    "</div>",
     unsafe_allow_html=True
 )
