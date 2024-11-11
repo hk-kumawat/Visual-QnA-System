@@ -1,58 +1,58 @@
 import streamlit as st
 from PIL import Image
+from transformers import pipeline, AutoProcessor, AutoModelForVisualQuestionAnswering
+import torch
 from io import BytesIO
-from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # Set page layout to wide
 st.set_page_config(page_title="Visual Question Answering", layout="wide")
 
-# Function to load the model with error handling
-def load_model(model_name):
-    try:
-        processor = BlipProcessor.from_pretrained(model_name)
-        model = BlipForConditionalGeneration.from_pretrained(model_name)
-        return processor, model
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None, None
+# Load the image-to-text pipeline for captioning
+caption_pipeline = pipeline("image-to-text", model="Salesforce/blip2-opt-6.7b")
 
-# Load BLIP-2 model (BLIP's enhanced version for question answering)
-blip_processor, blip_model = load_model("Salesforce/blip2-opt-6.7b")
+# Load processor and model for Visual Question Answering (VQA)
+vqa_processor = AutoProcessor.from_pretrained("Salesforce/blip2-opt-6.7b")
+vqa_model = AutoModelForVisualQuestionAnswering.from_pretrained("Salesforce/blip2-opt-6.7b")
 
-# Ensure the model is loaded successfully
-if not blip_processor or not blip_model:
-    st.stop()
+# Function to generate image caption
+def generate_image_caption(image):
+    # Generate caption for the image
+    caption = caption_pipeline(image)[0]['generated_text']
+    return caption
 
-# Function to get the answer to a question using BLIP-2
-def get_answer(image, text):
-    try:
-        # Check if image or question is None or empty
-        if image is None:
-            return "No image provided."
-        if not text or text.strip() == "":
-            return "No question provided."
-
-        # Load and process the image
-        img = Image.open(BytesIO(image)).convert("RGB")
-
-        # Prepare the image and question for BLIP-2
-        inputs = blip_processor(images=img, text=text, return_tensors="pt")
-
-        if inputs is None:
-            return "Error: Failed to create inputs for the BLIP model."
-
-        # Generate an answer based on the image and question
-        out = blip_model.generate(**inputs)
-        answer = blip_processor.decode(out[0], skip_special_tokens=True)
-
-        return answer
-
-    except Exception as e:
-        return f"Error occurred: {str(e)}"
+# Function to answer questions based on an image
+def answer_question(image, question):
+    # Process the image and question for VQA
+    inputs = vqa_processor(images=image, text=question, return_tensors="pt").to(vqa_model.device)
+    
+    # Generate answer
+    with torch.no_grad():
+        outputs = vqa_model(**inputs)
+    
+    # Decode and return answer
+    answer = vqa_processor.decode(outputs.logits.argmax(dim=-1)[0])
+    return answer
 
 # Set up the Streamlit app
-st.title("🔍 Visual Question Answering 🖼️")
-st.write("Upload an image and ask a question to get a detailed answer!")
+st.title("🔍 Visual Question Answering 🖼️ ")
+st.write("Upload an image and enter a question to get an answer!")
+
+# Add custom CSS for styling
+st.markdown(
+    """
+    <style>
+    .centered {
+        text-align: center;
+        font-size: 20px;
+        font-style: italic;
+        color: #333;
+        margin-top: 20px;
+        line-height: 1.6;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Create columns for image upload and input fields
 col1, col2 = st.columns(2)
@@ -64,40 +64,27 @@ with col1:
     if uploaded_file is not None:
         # Display the uploaded image
         st.image(uploaded_file, use_container_width=True)
-
-        # Store image bytes for processing
+        
+        # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
+        img = Image.open(BytesIO(image_bytes)).convert("RGB")
+        caption = generate_image_caption(img)
 
-        # Suggested Questions - you can expand or customize the question set
-        suggested_questions = [
-            "What is in the image?",
-            "What is happening in the image?",
-            "Who or what is in the image?",
-            "What is the main subject of the image?"
-        ]
-    else:
-        suggested_questions = []  # Handle case where no image is uploaded
+        # Display the caption with previous formatting and centered
+        st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
 
 # Question Input
 with col2:
-    # Store the selected question in session state to persist its value
-    if 'question' not in st.session_state:
-        st.session_state['question'] = ""
+    question = st.text_input("Ask a question about the image")
 
-    # Allow user to type their own question
-    question = st.text_input("Ask a question about the image", value=st.session_state['question'])
-
-    # Button for prediction (only show if question is input)
+    # Button for prediction
     if uploaded_file and question:
-        if st.button("Get Answer"):
-            # Get the detailed answer from BLIP-2
-            answer = get_answer(image_bytes, question)
+        if st.button("Predict Answer"):
+            # Get the answer
+            answer = answer_question(img, question)
 
-            # Display the answer
+            # Display the answer using st.success()
             st.success(f"Answer: {answer}")
-
-            # After showing the answer, reset the question input field for new input
-            st.session_state['question'] = ""  # Clear the 'Your question' box for next input
 
 # Footer
 st.markdown("---")
@@ -105,4 +92,3 @@ st.markdown(
     "<p style='text-align: center;'>Where <strong>Vision</strong> Meets <strong>Intelligence</strong> - A Creation by <strong>Harshal Kumawat</strong> 👁️🤖</p>",
     unsafe_allow_html=True
 )
-
