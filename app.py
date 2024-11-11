@@ -22,23 +22,27 @@ def get_answer(image, question):
         
         # Generate a caption for the image first
         caption = generate_caption(image)
+        if caption == "Unknown":
+            return "Failed to generate caption for the image."
 
         # Combine the caption with the question to provide context
         context = f"Image description: {caption}. Question: {question}"
+        print(f"Context for VQA model: {context}")  # Debug print
 
         # Prepare inputs for VQA
         encoding = processor(img, context, return_tensors="pt")
-
+        
         # Forward pass through VQA model
         outputs = model(**encoding)
         logits = outputs.logits
         idx = logits.argmax(-1).item()
-        answer = model.config.id2label[idx]
+        answer = model.config.id2label.get(idx, "Unknown")  # Get label, default to "Unknown" if not found
         
-        # Return the detailed answer
+        print(f"Answer from model: {answer}")  # Debug print
+        
         return answer
     except Exception as e:
-        return str(e)
+        return f"Error: {str(e)}"
 
 # Function to generate image caption using BLIP
 def generate_caption(image):
@@ -49,9 +53,12 @@ def generate_caption(image):
         inputs = blip_processor(images=img, return_tensors="pt")
         out = blip_model.generate(**inputs)
         caption = blip_processor.decode(out[0], skip_special_tokens=True)
+        
+        print(f"Generated caption: {caption}")  # Debug print
+        
         return caption
     except Exception as e:
-        return str(e)
+        return "Unknown"  # Return "Unknown" if caption generation fails
 
 # Set up the Streamlit app
 st.title("🔍 Visual Question Answering 🖼️")
