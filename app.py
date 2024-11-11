@@ -89,7 +89,7 @@ with col1:
         # Generate and display image caption centered below the image
         image_bytes = uploaded_file.getvalue()
         caption = generate_caption(image_bytes)
-        st.markdown(f"<div class='centered'>{caption}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center;'>{caption}</div>", unsafe_allow_html=True)
 
 # Custom Question Input
 with col2:
